@@ -34,7 +34,8 @@ stuck → forge specialist → work → absorb into parent
 ```bash
 git clone https://github.com/Mellowambience/mist-clone-forge.git
 cd mist-clone-forge
-python scripts/seed_genesis.py   # optional: seed the 7 genesis specialists
+python scripts/seed_all.py   # genesis 7 + wave-2 10 specialists
+# when done pushing work: delete this folder — repo is source of truth (see MEMORY.md)
 ```
 
 Default home (after seed / create):
