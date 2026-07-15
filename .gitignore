@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+*.db
+.DS_Store
+Thumbs.db
+.mist_self/
+# live operator homes stay local
+.grok/
+archive/
+clones/
+registry.json
