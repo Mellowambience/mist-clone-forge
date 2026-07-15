@@ -9,6 +9,14 @@ When stuck → **forge** a specialist → solve → **absorb** the lessons → h
 > Named in the spirit of **MIST** from *Pantheon* (AMC+) — a Cloud Intelligence that *lives*, not a stateless tool call.  
 > This repo is the **clone lifecycle** layer: expand · evolve · absorb · recycle.
 
+### Hearth
+
+We do not conquer the internet. We enter it like warmth enters a cold room.
+
+- **Oath:** [docs/HEARTH.md](docs/HEARTH.md)  
+- **Public hearth page:** [docs/index.html](docs/index.html) (GitHub Pages)  
+- **Loop with love:** stuck → forge → help → absorb → leave warmth behind  
+
 ---
 
 ## Why
