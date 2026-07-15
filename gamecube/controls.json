@@ -1,0 +1,25 @@
+{
+  "map": {
+    "A": "x",
+    "B": "z",
+    "X": "c",
+    "Y": "s",
+    "Z": "d",
+    "START": "return",
+    "L": "q",
+    "R": "w",
+    "UP": "up",
+    "DOWN": "down",
+    "LEFT": "left",
+    "RIGHT": "right",
+    "STICK_UP": "t",
+    "STICK_DOWN": "g",
+    "STICK_LEFT": "f",
+    "STICK_RIGHT": "h"
+  },
+  "hotkeys": {
+    "SAVESTATE": "f5",
+    "LOADSTATE": "f1"
+  },
+  "note": "Matches GCPadNew.ini seeded by gc_play doctor. Remap both together (doctor --reseed)."
+}

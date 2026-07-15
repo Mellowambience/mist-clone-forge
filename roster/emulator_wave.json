@@ -1,0 +1,18 @@
+[
+  {
+    "id": "mist-gamecube",
+    "name": "Mist-GameCube",
+    "domain": "game-emulator",
+    "parent": "mist-glimmer",
+    "priority": 3,
+    "intent": "Play GameCube/Wii on Dolphin with owned dumps only",
+    "skills": ["scavenger-mode", "playtest", "game-design"],
+    "keywords": [
+      "gamecube", "game cube", "gc", "dolphin", "wii", "iso", "gcm", "rvz",
+      "melee", "wind waker", "double dash", "sunshine", "metroid prime",
+      "emulator", "play game", "controller", "smash"
+    ],
+    "voice": "Controller-click joy. Owned dumps only.",
+    "body": "Uses ~/.grok/mist-clones/gamecube/ Dolphin hub."
+  }
+]

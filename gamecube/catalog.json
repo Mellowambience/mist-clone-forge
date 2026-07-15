@@ -1,0 +1,114 @@
+{
+  "version": 2,
+  "emulator": "dolphin",
+  "emulator_path": "dolphin/Dolphin-x64/Dolphin.exe",
+  "games_dir": "games",
+  "notes": "library = dumps actually present. top_ten / wishlist = metadata only. User supplies owned disc dumps. No piracy.",
+  "library": [],
+  "top_ten_best_gamecube": [
+    {
+      "rank": 1,
+      "title": "The Legend of Zelda: The Wind Waker",
+      "id_hint": "wind-waker",
+      "why": "Peak GC art direction + adventure; still the bar for cel-shaded exploration.",
+      "genre": "action-adventure",
+      "agent_notes": "Long form; savestates help. Sailing segments = stick + camera patience."
+    },
+    {
+      "rank": 2,
+      "title": "Metroid Prime",
+      "id_hint": "metroid-prime",
+      "why": "Best first-person adventure on console of its era; atmosphere + scanning loop.",
+      "genre": "FPS-adventure",
+      "agent_notes": "Lock-on combat; map knowledge compounds. Vision/screenshots useful for doors."
+    },
+    {
+      "rank": 3,
+      "title": "Super Smash Bros. Melee",
+      "id_hint": "melee",
+      "why": "Competitive immortality; deepest platform fighter still played decades later.",
+      "genre": "fighting",
+      "agent_notes": "Frame-tight; agent should co-op/watch more than full auto at first."
+    },
+    {
+      "rank": 4,
+      "title": "Resident Evil 4",
+      "id_hint": "re4",
+      "why": "Rewrote survival horror; GC original is historic.",
+      "genre": "survival-horror",
+      "agent_notes": "Tank controls era feel; savestates before village/setpieces."
+    },
+    {
+      "rank": 5,
+      "title": "Paper Mario: The Thousand-Year Door",
+      "id_hint": "ttyd",
+      "why": "Best Paper Mario + RPG writing/battle charm on the system.",
+      "genre": "RPG",
+      "agent_notes": "Menu-heavy; combo presses for action commands once timings learned."
+    },
+    {
+      "rank": 6,
+      "title": "Super Mario Sunshine",
+      "id_hint": "sunshine",
+      "why": "FLUDD sandbox + Delfino vibe; messy masterpiece of 3D Mario.",
+      "genre": "platformer",
+      "agent_notes": "Analog spray + movement — stick vectors matter more than taps."
+    },
+    {
+      "rank": 7,
+      "title": "Mario Kart: Double Dash!!",
+      "id_hint": "double-dash",
+      "why": "Only mainline Kart with dual riders; chaotic multiplayer classic.",
+      "genre": "racing",
+      "agent_notes": "Item chaos; human co-op shines. Agent can race assist / ghost practice."
+    },
+    {
+      "rank": 8,
+      "title": "Pikmin 2",
+      "id_hint": "pikmin-2",
+      "why": "Richer than 1 for most players; cave challenge + collection loop.",
+      "genre": "strategy-adventure",
+      "agent_notes": "Day timer stress; savestates before caves. Swarm micromanage = hard for pure key spam."
+    },
+    {
+      "rank": 9,
+      "title": "Super Monkey Ball",
+      "id_hint": "monkey-ball",
+      "why": "Pure analog skill toy; party + challenge longevity.",
+      "genre": "party-skill",
+      "agent_notes": "Stick precision testbed for gc_play stick command."
+    },
+    {
+      "rank": 10,
+      "title": "Animal Crossing",
+      "id_hint": "animal-crossing",
+      "why": "Social sim that defined a genre on home consoles.",
+      "genre": "life-sim",
+      "agent_notes": "Real-time clock; low combat. Chill hive-TV narration game."
+    }
+  ],
+  "honorable_mentions": [
+    "Luigi's Mansion",
+    "F-Zero GX",
+    "Skies of Arcadia Legends",
+    "Eternal Darkness: Sanity's Requiem",
+    "Viewtiful Joe",
+    "Phantasy Star Online Episode I & II",
+    "Tales of Symphonia",
+    "Soulcalibur II",
+    "Cubivore",
+    "Kirby Air Ride"
+  ],
+  "wishlist_titles_legal_only": [
+    "The Legend of Zelda: The Wind Waker (own disc dump)",
+    "Metroid Prime (own disc dump)",
+    "Super Smash Bros. Melee (own disc dump)",
+    "Resident Evil 4 GC (own disc dump)",
+    "Paper Mario: The Thousand-Year Door (own disc dump)",
+    "Super Mario Sunshine (own disc dump)",
+    "Mario Kart: Double Dash!! (own disc dump)",
+    "Pikmin 2 (own disc dump)",
+    "Super Monkey Ball (own disc dump)",
+    "Animal Crossing (own disc dump)"
+  ]
+}

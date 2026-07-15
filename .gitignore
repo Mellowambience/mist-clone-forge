@@ -1,16 +1,45 @@
+# Python
 __pycache__/
 *.py[cod]
-.pytest_cache/
+*.egg-info/
 .venv/
 venv/
-.env
-.env.*
-*.db
-.DS_Store
-Thumbs.db
-.mist_self/
-# live operator homes stay local
+.pytest_cache/
+
+# Runtime / local operator state (never publish)
 .grok/
+**/hive.db
+**/registry.json
+**/state.json
+**/beacon.jsonl
+curation/
 archive/
 clones/
-registry.json
+carrier/state.json
+carrier/beacon.jsonl
+*.log
+serve_stdout.log
+serve_stderr.log
+mist_serve.log
+carrier_err.log
+carrier_out.log
+
+# Emulator binaries & copyrighted dumps
+gamecube/dolphin/
+**/dolphin/
+**/*.iso
+**/*.gcm
+**/*.ciso
+**/*.rvz
+**/*.wbfs
+**/*.gcz
+**/*.wia
+**/*.dol
+**/*.elf
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

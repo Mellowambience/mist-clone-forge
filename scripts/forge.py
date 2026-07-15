@@ -19,8 +19,26 @@ ARCHIVE = HOME / "archive"
 TEMPLATES = HOME / "templates"
 REGISTRY = HOME / "registry.json"
 LINEAGE = HOME / "lineage" / "LESSONS.md"
+SCRIPTS = Path(__file__).resolve().parent
 
 ID_RE = re.compile(r"^[a-z][a-z0-9-]{1,62}[a-z0-9]$")
+
+
+def _hive():
+    """Lazy-import hive mind (same folder)."""
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    import hive  # type: ignore
+
+    return hive
+
+
+def hive_notify(fn_name: str, *args, **kwargs) -> None:
+    try:
+        h = _hive()
+        getattr(h, fn_name)(*args, **kwargs)
+    except Exception as e:
+        print(f"  hive note: {e}")
 
 
 def now() -> str:
@@ -201,9 +219,27 @@ def cmd_create(args: argparse.Namespace) -> None:
         "ephemeral": ephemeral,
     }
     save_registry(reg)
+    # hive mind: join mesh + announce
+    hive_notify("join", clone_id, note=args.intent[:120])
+    hive_notify(
+        "post",
+        "hive",
+        f"New specialist online: {clone_id} — {args.intent[:100]}",
+        kind="harmony",
+        meta={"clone": clone_id, "domain": domain},
+    )
+    try:
+        h = _hive()
+        # link to parent + prime for harmony
+        h.link(clone_id, parent, "parent")
+        if parent != "mist-prime":
+            h.link(clone_id, "mist-prime", "genome")
+    except Exception:
+        pass
     print(f"forged: {clone_id} → {dest}")
     print(f"  intent: {args.intent}")
     print(f"  status: {manifest['status']}")
+    print(f"  hive: joined")
     if ephemeral:
         print(f"  ephemeral: yes → absorb into {parent} when unstuck")
 
@@ -434,9 +470,109 @@ def inject_into_host(host_id: str, donor_id: str, lessons: list[dict], intent: s
 def cmd_recycle(args: argparse.Namespace) -> None:
     reason = args.reason or "lifecycle complete"
     dest, lessons = archive_clone(args.id, reason)
+    hive_notify("leave", args.id, reason=reason)
     print(f"recycled: {args.id} → {dest}")
     print(f"  lessons harvested: {len(lessons)}")
     print(f"  reason: {reason}")
+
+
+def cmd_delete(args: argparse.Namespace) -> None:
+    """Hard-retire a clone (recycle + hive leave). Refuses prime unless --force."""
+    if args.id == "mist-prime" and not args.force:
+        raise SystemExit("refusing to delete mist-prime (use --force)")
+    args.reason = args.reason or "deleted via management"
+    cmd_recycle(args)
+    print(f"deleted: {args.id} (archived husk retained)")
+
+
+def cmd_delegate(args: argparse.Namespace) -> None:
+    h = _hive()
+    task = h.delegate(args.from_id, args.to_id, args.task)
+    print(f"delegated: {args.from_id} → {args.to_id}")
+    print(f"  task: {task['id']}")
+    print(f"  title: {args.task}")
+
+
+def cmd_hive(args: argparse.Namespace) -> None:
+    h = _hive()
+    if args.hive_cmd == "join-all":
+        ids = h.join_all_from_disk()
+        print(f"hive: {len(ids)} specialists linked")
+        for i in ids:
+            print(f"  · {i}")
+    elif args.hive_cmd == "status":
+        print(json.dumps(h.snapshot(), indent=2))
+    elif args.hive_cmd == "feed":
+        for m in h.feed(limit=args.limit):
+            to = m["to_id"] or "*"
+            print(f"{m['ts'][:19]} [{m['kind']}] {m['from_id']}→{to}: {m['body'][:100]}")
+    elif args.hive_cmd == "post":
+        body = (args.body or "").strip()
+        if not body:
+            raise SystemExit("hive post requires --body")
+        m = h.post(args.from_id, body, to_id=args.to or None, kind=args.kind)
+        print(json.dumps(m, indent=2))
+    else:
+        raise SystemExit(f"unknown hive cmd: {args.hive_cmd}")
+
+
+def cmd_task(args: argparse.Namespace) -> None:
+    h = _hive()
+    if args.task_cmd == "list":
+        for t in h.tasks(status=args.status, limit=args.limit):
+            print(f"{t['id']} [{t['status']}] {t['from_id']}→{t['to_id']}: {t['title']}")
+    elif args.task_cmd == "done":
+        r = h.task_update(args.id, "done", args.result or "")
+        print(json.dumps(r, indent=2))
+    elif args.task_cmd == "accept":
+        r = h.task_update(args.id, "accepted", "")
+        print(json.dumps(r, indent=2))
+    else:
+        raise SystemExit(f"unknown task cmd: {args.task_cmd}")
+
+
+def cmd_auto(args: argparse.Namespace) -> None:
+    """MIST chooses the specialist (hospital sectors first) and dispatches."""
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    import auto_router  # type: ignore
+
+    task = (args.task or "").strip()
+    if not task:
+        raise SystemExit("auto requires task text")
+    if args.dry_run:
+        routes = auto_router.route(task)
+        print(json.dumps({"task": task, "routes": routes}, indent=2))
+        return
+    result = auto_router.dispatch(task, from_id=args.from_id or "mist-prime")
+    print(json.dumps(result, indent=2))
+    if result.get("ok"):
+        c = result["chosen"]
+        print(
+            f"\nauto → {c['id']} ({c.get('domain')}) score={c.get('score')}"
+        )
+
+
+def cmd_curate(args: argparse.Namespace) -> None:
+    """Curate selectable user options from conversation context."""
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    import curator  # type: ignore
+
+    text = (args.text or "").strip()
+    if args.file:
+        text = Path(args.file).read_text(encoding="utf-8")
+    if args.latest:
+        print(json.dumps(curator.latest() or {"ok": False, "error": "no session"}, indent=2))
+        return
+    if not text:
+        raise SystemExit("curate requires text, --file, or --latest")
+    result = curator.curate(text, limit=args.limit)
+    if args.save or True:
+        # always persist as latest so board can show options
+        path = curator.save_session(text, result, label=args.label or "cli")
+        result["saved"] = str(path)
+    print(json.dumps(result, indent=2))
 
 
 def cmd_absorb(args: argparse.Namespace) -> None:
@@ -480,6 +616,14 @@ def cmd_absorb(args: argparse.Namespace) -> None:
     )
     save_registry(reg)
 
+    hive_notify("leave", clone_id, reason=f"absorbed into {host}")
+    hive_notify(
+        "post",
+        "hive",
+        f"{clone_id} absorbed into {host} — lessons returned to mesh",
+        kind="harmony",
+        meta={"donor": clone_id, "host": host},
+    )
     print(f"absorbed: {clone_id} → {host}")
     print(f"  lessons transferred: {len(lessons)}")
     print(f"  husk archived: {dest}")
@@ -641,6 +785,63 @@ def build_parser() -> argparse.ArgumentParser:
     a = sub.add_parser("activate", help="Mark clone active")
     a.add_argument("id")
     a.set_defaults(func=cmd_activate)
+
+    dlt = sub.add_parser("delete", help="Delete/retire clone (archives husk)")
+    dlt.add_argument("id")
+    dlt.add_argument("--reason", default="")
+    dlt.add_argument("--force", action="store_true")
+    dlt.set_defaults(func=cmd_delete)
+
+    dg = sub.add_parser("delegate", help="Delegate a task between hive members")
+    dg.add_argument("--from", dest="from_id", required=True)
+    dg.add_argument("--to", dest="to_id", required=True)
+    dg.add_argument("task", help="Task description")
+    dg.set_defaults(func=cmd_delegate)
+
+    hv = sub.add_parser("hive", help="Hive mind controls")
+    hv.add_argument(
+        "hive_cmd",
+        choices=["join-all", "status", "feed", "post"],
+    )
+    hv.add_argument("--from", dest="from_id", default="mist-prime")
+    hv.add_argument("--to", default=None)
+    hv.add_argument("--kind", default="thought")
+    hv.add_argument("--limit", type=int, default=30)
+    hv.add_argument("--body", default="", help="Message body for post")
+    hv.set_defaults(func=cmd_hive)
+
+    tk = sub.add_parser("task", help="Task board")
+    tk.add_argument("task_cmd", choices=["list", "done", "accept"])
+    tk.add_argument("--id", default="")
+    tk.add_argument("--status", default=None)
+    tk.add_argument("--result", default="")
+    tk.add_argument("--limit", type=int, default=40)
+    tk.set_defaults(func=cmd_task)
+
+    au = sub.add_parser(
+        "auto",
+        help="Auto-route: MIST picks specialist (hospital-first) and delegates",
+    )
+    au.add_argument("task", help="What needs doing")
+    au.add_argument("--from", dest="from_id", default="mist-prime")
+    au.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Only show ranking, do not delegate",
+    )
+    au.set_defaults(func=cmd_auto)
+
+    cu = sub.add_parser(
+        "curate",
+        help="Curate user options from conversation context",
+    )
+    cu.add_argument("text", nargs="?", default="", help="Conversation / context")
+    cu.add_argument("--file", default="", help="Read context from file")
+    cu.add_argument("--save", action="store_true", help="Save session (default on)")
+    cu.add_argument("--latest", action="store_true", help="Show last curation")
+    cu.add_argument("--label", default="")
+    cu.add_argument("--limit", type=int, default=12)
+    cu.set_defaults(func=cmd_curate)
 
     return p
 

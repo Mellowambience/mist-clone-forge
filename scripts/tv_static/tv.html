@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MIST Agentic Vision</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #03060c;
+  --panel: rgba(8, 16, 32, 0.72);
+  --ink: #eef6ff;
+  --mute: #7d94b3;
+  --accent: #38bdf8;
+  --accent2: #a78bfa;
+  --accent3: #34d399;
+  --danger: #f472b6;
+  --line: rgba(148, 180, 220, 0.14);
+  --glow: 0 0 40px rgba(56, 189, 248, 0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  overflow: hidden;
+}
+/* layered depth field — modern, not retro */
+.field {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(1200px 700px at 15% 10%, rgba(56, 189, 248, 0.14), transparent 55%),
+    radial-gradient(900px 600px at 85% 20%, rgba(167, 139, 250, 0.12), transparent 50%),
+    radial-gradient(800px 500px at 50% 100%, rgba(52, 211, 153, 0.06), transparent 45%),
+    linear-gradient(180deg, #050a14 0%, #03060c 100%);
+}
+.field::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+  pointer-events: none;
+}
+
+.app {
+  position: relative; z-index: 1;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 56px 1fr 40px;
+  gap: 0;
+}
+
+/* top bar */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.1rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(3, 8, 16, 0.65);
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+.brand {
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.brand-mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, #0ea5e9, #8b5cf6 55%, #34d399);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.45);
+}
+.brand h1 {
+  font-family: "Syne", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.brand span {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.65rem;
+  color: var(--mute);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.top-meta {
+  display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+}
+.chip {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--mute);
+  border: 1px solid var(--line);
+  background: rgba(8, 16, 32, 0.6);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+}
+.chip b { color: var(--ink); font-weight: 500; }
+.chip.live b { color: var(--accent3); }
+.chip a { color: var(--accent); text-decoration: none; }
+.chip.carrier-locked {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.08);
+}
+.chip.carrier-locked b { color: var(--accent3); }
+.chip.carrier-lost {
+  border-color: rgba(244, 114, 182, 0.55);
+  background: rgba(244, 114, 182, 0.08);
+  animation: pulseLost 1.2s ease infinite;
+}
+.chip.carrier-lost b { color: var(--danger); }
+@keyframes pulseLost { 50% { opacity: 0.55; } }
+.bars { letter-spacing: 0.06em; font-family: "IBM Plex Mono", monospace; }
+
+/* main stage */
+.stage {
+  display: grid;
+  grid-template-columns: 220px 1fr 300px;
+  min-height: 0;
+}
+@media (max-width: 960px) {
+  .stage { grid-template-columns: 1fr; }
+  .rail-left, .rail-right { display: none; }
+  .rail-left.open, .rail-right.open { display: block; }
+}
+
+.rail-left, .rail-right {
+  border-right: 1px solid var(--line);
+  background: rgba(4, 10, 20, 0.45);
+  backdrop-filter: blur(12px);
+  overflow: auto;
+  min-height: 0;
+}
+.rail-right { border-right: none; border-left: 1px solid var(--line); }
+
+.rail-h {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+  padding: 0.85rem 0.9rem 0.4rem;
+}
+
+.agent-list { padding: 0.25rem 0.55rem 1rem; }
+.agent-item {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  width: 100%; text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: background 0.12s, border-color 0.12s;
+}
+.agent-item:hover { background: rgba(56, 189, 248, 0.06); }
+.agent-item.active {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: var(--glow);
+}
+.agent-item .aid {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+.agent-item .adom {
+  font-size: 0.65rem;
+  color: var(--mute);
+}
+.pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; margin-right: 6px;
+  background: var(--mute);
+}
+.pulse-dot.hot { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.pulse-dot.warm { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.pulse-dot.idle { background: #334155; }
+
+/* center cognition surface */
+.surface {
+  display: flex; flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+.surface-head {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+  align-items: center; justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+}
+.surface-head h2 {
+  font-family: "Syne", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.surface-head p {
+  font-size: 0.75rem;
+  color: var(--mute);
+  max-width: 48ch;
+}
+.tools { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.btn {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  border: 1px solid var(--line);
+  background: rgba(8, 16, 32, 0.7);
+  color: var(--mute);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+.btn:hover { color: var(--ink); border-color: rgba(56,189,248,0.4); }
+.btn.primary {
+  background: linear-gradient(135deg, #0284c7, #6d28d9);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25);
+}
+
+/* thought stream — agentic, dense, readable */
+.stream {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem 1.15rem 1.5rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  scroll-behavior: smooth;
+}
+.thought {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.35rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(8, 16, 32, 0.35);
+  animation: rise 0.25s ease;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.thought:hover {
+  border-color: var(--line);
+  background: rgba(56, 189, 248, 0.05);
+}
+.thought .who {
+  color: var(--accent);
+  font-size: 0.68rem;
+  word-break: break-all;
+}
+.thought .body { color: var(--ink); }
+.thought.sys .who { color: var(--accent2); }
+.thought.sys { border-left: 2px solid var(--accent2); }
+.thought.task .who { color: var(--accent3); }
+.thought.task { border-left: 2px solid var(--accent3); }
+.thought.play .who { color: var(--danger); }
+.thought.think .body { color: #c7d7ee; }
+.thought .kind {
+  font-size: 0.58rem;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 0.15rem;
+}
+.empty {
+  color: var(--mute);
+  text-align: center;
+  padding: 3rem 1rem;
+  font-size: 0.85rem;
+}
+
+/* right: tasks + intent */
+.panel-card {
+  margin: 0.55rem 0.7rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.panel-card h3 {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.panel-card p, .panel-card li {
+  font-size: 0.7rem;
+  color: var(--mute);
+  line-height: 1.45;
+}
+.panel-card ul { list-style: none; }
+.panel-card li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.panel-card li:last-child { border-bottom: none; }
+.task-open { color: var(--accent3); }
+
+/* footer */
+.foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1rem;
+  border-top: 1px solid var(--line);
+  background: rgba(3, 8, 16, 0.7);
+  backdrop-filter: blur(12px);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.65rem;
+  color: var(--mute);
+}
+.foot a { color: var(--accent); text-decoration: none; }
+
+/* mesh mini viz */
+.mesh {
+  height: 90px;
+  margin: 0.5rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 50% 50%, rgba(56,189,248,0.08), transparent 70%);
+  position: relative;
+  overflow: hidden;
+}
+.mesh canvas { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+  <div class="field"></div>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1>Agentic Vision</h1>
+          <span>MIST cognition surface</span>
+        </div>
+      </div>
+      <div class="top-meta">
+        <div class="chip live"><b id="live">●</b> live</div>
+        <div class="chip carrier-locked" id="carrier-chip" title="PC mesh carrier">
+          <b id="carrier-st">MESH…</b>
+          <span class="bars" id="carrier-bars"></span>
+        </div>
+        <div class="chip carrier-lost" id="phone-chip" title="Phone on Wi‑Fi">
+          <b id="phone-st">PHONE…</b>
+          <span class="bars" id="phone-bars"></span>
+        </div>
+        <div class="chip"><b id="carrier-up">—</b> up</div>
+        <div class="chip"><b id="k-n">0</b> agents</div>
+        <div class="chip"><b id="k-m">0</b> minds linked</div>
+        <div class="chip"><b id="k-t">0</b> open tasks</div>
+        <div class="chip"><a href="/">Ops</a> · <a href="/tv">Vision</a></div>
+      </div>
+    </header>
+
+    <div class="stage">
+      <aside class="rail-left">
+        <div class="rail-h">Specialists</div>
+        <div class="agent-list" id="agents"></div>
+      </aside>
+
+      <main class="surface">
+        <div class="surface-head">
+          <div>
+            <h2 id="focus-title">Hive multiplex</h2>
+            <p id="focus-sub">Live cognition from hive bus, tasks, and role streams — not a toy TV.</p>
+          </div>
+          <div class="tools">
+            <button class="btn" id="btn-all">All agents</button>
+            <button class="btn primary" id="btn-auto">Auto-route…</button>
+            <button class="btn" id="btn-clear">Clear stream</button>
+          </div>
+        </div>
+        <div class="stream" id="stream">
+          <div class="empty">Connecting to hive…</div>
+        </div>
+      </main>
+
+      <aside class="rail-right">
+        <div class="rail-h">Mesh pulse</div>
+        <div class="mesh"><canvas id="mesh"></canvas></div>
+        <div class="rail-h">Active work</div>
+        <div class="panel-card">
+          <ul id="tasks"><li class="empty" style="border:0;padding:0.5rem 0">No open tasks</li></ul>
+        </div>
+        <div class="rail-h">Focus intent</div>
+        <div class="panel-card">
+          <h3 id="intent-name">—</h3>
+          <p id="intent-body">Select an agent to inspect intent and domain.</p>
+        </div>
+        <div class="rail-h">Agent actions</div>
+        <div class="panel-card">
+          <p style="margin-bottom:0.5rem">Dispatch this mind on a need:</p>
+          <input id="quick-task" placeholder="What should they do?" style="width:100%;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:.45rem .55rem;font:inherit;font-size:.72rem;margin-bottom:.45rem"/>
+          <button class="btn primary" style="width:100%" id="btn-dispatch">Dispatch via auto-route</button>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="foot">
+      <span id="st-sig">signal · —</span>
+      <span id="st-ts">—</span>
+    </footer>
+  </div>
+
+<script>
+const S = {
+  channel: 'ALL',
+  agents: [],
+  seen: new Set(),
+  focus: null,
+};
+
+const $ = id => document.getElementById(id);
+
+function esc(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderAgents() {
+  const root = $('agents');
+  root.innerHTML = S.agents.map(a => `
+    <button class="agent-item ${S.channel===a.id?'active':''}" data-id="${esc(a.id)}">
+      <span class="aid"><span class="pulse-dot ${esc(a.pulse||'idle')}"></span>${esc(a.id)}</span>
+      <span class="adom">${esc(a.domain||'—')}</span>
+    </button>
+  `).join('');
+  root.querySelectorAll('.agent-item').forEach(el => {
+    el.onclick = () => selectAgent(el.dataset.id);
+  });
+}
+
+function selectAgent(id) {
+  S.channel = id;
+  S.focus = S.agents.find(a => a.id === id) || null;
+  $('btn-all').classList.toggle('primary', false);
+  renderAgents();
+  if (S.focus) {
+    $('focus-title').textContent = S.focus.id;
+    $('focus-sub').textContent = (S.focus.domain || '') + ' · live cognition channel';
+    $('intent-name').textContent = S.focus.id;
+    // intent loaded from board snapshot if present later
+    $('intent-body').textContent = 'Channel focused. Streaming thoughts for this specialist.';
+  }
+  pull(true);
+}
+
+function addThought(th, force) {
+  const key = th.id || (th.ts + th.text);
+  if (!force && S.seen.has(key)) return;
+  S.seen.add(key);
+  if (S.seen.size > 300) S.seen = new Set([...S.seen].slice(-150));
+
+  const stream = $('stream');
+  if (stream.querySelector('.empty')) stream.innerHTML = '';
+
+  const kind = (th.kind || 'think').toLowerCase();
+  let kclass = 'think';
+  if (kind.includes('harmon') || kind === 'system') kclass = 'sys';
+  if (kind.includes('task') || kind === 'delegate') kclass = 'task';
+  if (kind.includes('play')) kclass = 'play';
+
+  const el = document.createElement('div');
+  el.className = 'thought ' + kclass;
+  el.innerHTML = `
+    <div>
+      <div class="who">${esc(th.channel || '?')}</div>
+      <div class="kind">${esc(kind)}</div>
+    </div>
+    <div class="body">${esc(th.text || '')}</div>
+  `;
+  stream.appendChild(el);
+  while (stream.children.length > 80) stream.removeChild(stream.firstChild);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+async function pull(reset) {
+  try {
+    const ch = S.channel === 'ALL' ? 'ALL' : S.channel;
+    const r = await fetch('/api/tv?channel=' + encodeURIComponent(ch) + '&t=' + Date.now());
+    const d = await r.json();
+    if (d.agents) {
+      S.agents = d.agents;
+      renderAgents();
+      drawMesh();
+    }
+    $('k-n').textContent = (d.agents || []).length;
+    $('k-m').textContent = d.member_count || 0;
+    $('live').textContent = d.live ? '●' : '○';
+    const car = d.carrier || {};
+    const mesh = car.mesh || {};
+    const phone = car.phone || {};
+    const locked = (mesh.locked !== false) && d.live;
+    const chip = $('carrier-chip');
+    chip.classList.toggle('carrier-locked', locked);
+    chip.classList.toggle('carrier-lost', !locked);
+    $('carrier-st').textContent = locked ? 'MESH LOCK' : 'MESH DOWN';
+    $('carrier-bars').textContent = mesh.signal_label || car.signal_label || '';
+    $('carrier-up').textContent = car.uptime_human || '—';
+    const pchip = $('phone-chip');
+    const plock = !!phone.locked;
+    if (pchip) {
+      pchip.classList.toggle('carrier-locked', plock);
+      pchip.classList.toggle('carrier-lost', !plock);
+    }
+    if ($('phone-st')) {
+      const pname = phone.name || 'PHONE';
+      $('phone-st').textContent = plock ? (pname + ' LOCK') : (pname + ' …');
+    }
+    if ($('phone-bars')) $('phone-bars').textContent = phone.signal_label || '[.....]';
+    const urls = (phone.urls || car.lan_urls || []);
+    const phoneUrl = urls[0] && urls[0].vision;
+    $('st-sig').textContent =
+      (locked ? 'mesh locked' : 'mesh down') +
+      ' · ' + (plock ? 'phone locked' : 'phone waiting') +
+      (phoneUrl ? ' · phone: ' + phoneUrl : '') +
+      ' · ' + (car.frequency || '');
+    $('st-ts').textContent = (d.ts || '').replace('T', ' ').slice(0, 19) + 'Z';
+    // keep mesh warm; phones auto-detected via User-Agent
+    const isMobile = /mobile|android|iphone|ipad/i.test(navigator.userAgent || '');
+    fetch('/api/carrier/ping?client=' + (isMobile ? 'phone' : 'vision')).catch(()=>{});
+
+    // tasks from hive via board
+    refreshTasks();
+
+    if (reset) {
+      $('stream').innerHTML = '';
+      S.seen = new Set();
+    }
+    (d.thoughts || []).forEach(th => addThought(th, false));
+
+    if (S.focus) {
+      // enrich intent from board agents if we fetch board
+    }
+  } catch (e) {
+    const chip = $('carrier-chip');
+    if (chip) {
+      chip.classList.remove('carrier-locked');
+      chip.classList.add('carrier-lost');
+    }
+    if ($('carrier-st')) $('carrier-st').textContent = 'NO CARRIER';
+    if ($('carrier-bars')) $('carrier-bars').textContent = '░░░░░';
+    if ($('carrier-up')) $('carrier-up').textContent = 'offline';
+    if ($('live')) $('live').textContent = '○';
+    if ($('st-sig')) $('st-sig').textContent = 'no carrier · 127.0.0.1:8766 refused · run start_carrier.bat';
+    addThought({ id: 'err-'+Date.now(), channel: 'system', kind: 'system',
+      text: 'NO CARRIER — mesh offline on :8766. Run start_carrier.bat or start_swarm_board.bat' }, true);
+  }
+}
+
+async function refreshTasks() {
+  try {
+    const b = await (await fetch('/api/board?t=' + Date.now())).json();
+    const tasks = (b.hive && (b.hive.open_tasks || b.hive.tasks)) || [];
+    const open = tasks.filter(t => t.status === 'open' || t.status === 'accepted');
+    $('k-t').textContent = open.length;
+    const ul = $('tasks');
+    if (!open.length) {
+      ul.innerHTML = '<li style="border:0;color:var(--mute)">No open tasks</li>';
+    } else {
+      ul.innerHTML = open.slice(0, 12).map(t =>
+        `<li><span class="task-open">${esc(t.to_id)}</span> ← ${esc(t.from_id)}<br/>${esc(t.title)}</li>`
+      ).join('');
+    }
+    // enrich focus intent
+    if (S.channel !== 'ALL') {
+      const full = (b.agents || []).find(a => a.id === S.channel);
+      if (full) {
+        $('intent-name').textContent = full.name || full.id;
+        $('intent-body').textContent = full.intent || '—';
+        $('focus-sub').textContent = (full.domain || '') + ' · gen ' + (full.generation || 1) + ' · ' + (full.hive_status || '');
+      }
+    }
+  } catch (_) {}
+}
+
+function drawMesh() {
+  const c = $('mesh');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = c.clientHeight;
+  c.width = w * dpr; c.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const n = Math.min(S.agents.length, 24);
+  if (!n) return;
+  const cx = w/2, cy = h/2, r = Math.min(w,h)*0.32;
+  const pts = [];
+  for (let i=0;i<n;i++) {
+    const a = (i / n) * Math.PI * 2 - Math.PI/2;
+    pts.push([cx + Math.cos(a)*r, cy + Math.sin(a)*r, S.agents[i]]);
+  }
+  ctx.strokeStyle = 'rgba(56,189,248,0.12)';
+  ctx.lineWidth = 1;
+  for (let i=0;i<pts.length;i++) {
+    for (let j=i+1;j<pts.length;j++) {
+      if ((i+j) % 3 === 0) {
+        ctx.beginPath();
+        ctx.moveTo(pts[i][0], pts[i][1]);
+        ctx.lineTo(pts[j][0], pts[j][1]);
+        ctx.stroke();
+      }
+    }
+  }
+  pts.forEach(([x,y,ag]) => {
+    const hot = ag.pulse === 'hot';
+    ctx.beginPath();
+    ctx.arc(x, y, hot ? 3.5 : 2.5, 0, Math.PI*2);
+    ctx.fillStyle = hot ? '#f472b6' : ag.pulse === 'warm' ? '#38bdf8' : '#475569';
+    ctx.fill();
+  });
+}
+
+$('btn-all').onclick = () => {
+  S.channel = 'ALL';
+  S.focus = null;
+  $('focus-title').textContent = 'Hive multiplex';
+  $('focus-sub').textContent = 'All specialists · live cognition · hospital-first mesh';
+  $('intent-name').textContent = 'Hive';
+  $('intent-body').textContent = 'Multiplex mode: every mind’s bus traffic in one stream.';
+  renderAgents();
+  pull(true);
+};
+$('btn-clear').onclick = () => { $('stream').innerHTML = '<div class="empty">Stream cleared — waiting for cognition…</div>'; S.seen = new Set(); };
+$('btn-auto').onclick = () => {
+  const task = prompt('Auto-route (MIST chooses specialist):');
+  if (!task) return;
+  fetch('/api/auto', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({task}) })
+    .then(r => r.json())
+    .then(j => {
+      addThought({ id: 'auto-'+Date.now(), channel: 'auto', kind: 'harmony',
+        text: j.ok ? `Dispatched → ${j.chosen && j.chosen.id}: ${task}` : (j.error || 'failed') }, true);
+      pull();
+    });
+};
+$('btn-dispatch').onclick = () => {
+  const task = $('quick-task').value.trim();
+  if (!task) return;
+  const body = S.channel !== 'ALL'
+    ? { task: `[${S.channel}] ${task}` }
+    : { task };
+  fetch('/api/auto', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    .then(r => r.json())
+    .then(j => {
+      addThought({ id: 'd-'+Date.now(), channel: 'auto', kind: 'task',
+        text: j.ok ? `→ ${j.chosen && j.chosen.id}: ${task}` : 'dispatch failed' }, true);
+      $('quick-task').value = '';
+      pull();
+    });
+};
+
+pull(true);
+setInterval(() => pull(false), 1400);
+window.addEventListener('resize', drawMesh);
+</script>
+</body>
+</html>

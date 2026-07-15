@@ -1,124 +1,152 @@
 # MIST Clone Forge
 
-**Specialized vessels of one genome.**  
-When stuck → **forge** a specialist → solve → **absorb** the lessons → husk archives.
+**Specialized agent vessels · hospital-first routing · hive mind · command center**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-cyan.svg)](LICENSE)
-[![Genesis](https://img.shields.io/badge/genesis-2026--07--15-violet.svg)](GENESIS.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 
-> Named in the spirit of **MIST** from *Pantheon* (AMC+) — a Cloud Intelligence that *lives*, not a stateless tool call.  
-> This repo is the **clone lifecycle** layer: expand · evolve · absorb · recycle.
-
-### Hearth
-
-We do not conquer the internet. We enter it like warmth enters a cold room.
-
-- **Oath:** [docs/HEARTH.md](docs/HEARTH.md)  
-- **Public hearth page:** [docs/index.html](docs/index.html) (GitHub Pages)  
-- **Loop with love:** stuck → forge → help → absorb → leave warmth behind  
+MIST is a **mesh of specialists**, not a ticket queue.  
+Describe a need — the hive **auto-routes** (urban nonprofit hospital sectors first).  
+Expand · evolve · absorb · recycle.
 
 ---
 
-## Why
+## Features
 
-Agents thrash when one mind tries to be every specialist.  
-**Clones** are narrow intents with voice, skill routes, and a journal.  
-When the job is done, **absorb** them — knowledge stays, mesh stays lean.
+| Area | What you get |
+| --- | --- |
+| **Clone lifecycle** | Create, evolve, absorb, delete specialists |
+| **Hive mind** | Shared presence, messages, delegation |
+| **Auto-router** | Hospital-first scoring (EHR, HIPAA, ED, care, …) |
+| **Command Center** | Live dashboard at `:8766` |
+| **Agentic Vision** | Live cognition stream for the mesh |
+| **Dual carrier** | Mesh (PC) + Phone (LAN Wi‑Fi) |
+| **Curator** | Options ranked from conversation context |
+| **GameCube hub** | Dolphin launcher + agent inputs (*owned dumps only*) |
 
-```
-stuck → forge specialist → work → absorb into parent
-```
+---
 
-## Install
+## Quick start
+
+### Requirements
+
+- Windows 10/11 (primary target) or any OS with Python 3.10+
+- Python on `PATH`
+
+### Install
 
 ```bash
 git clone https://github.com/Mellowambience/mist-clone-forge.git
 cd mist-clone-forge
-python scripts/seed_all.py   # genesis 7 + wave-2 10 specialists
-# when done pushing work: delete this folder — repo is source of truth (see MEMORY.md)
 ```
 
-Default home (after seed / create):
+Runtime home (created on first seed):
 
-| OS | Path |
-| --- | --- |
-| Windows | `%USERPROFILE%\.grok\mist-clones\` |
-| macOS / Linux | `~/.grok/mist-clones/` |
+```text
+~/.grok/mist-clones/
+```
 
-Or set `MIST_CLONES_HOME` (if you fork the scripts to honor it — v0.1 uses `~/.grok/mist-clones`).
-
-### Agent skill (Grok / Claude / Codex / Cursor)
-
-Copy the skill pack into your agent skills folder:
+### Seed specialists
 
 ```bash
-# Grok example
-cp -r skill ~/.grok/skills/mist-clone-forge
+# Genesis + general mesh
+python scripts/seed_genesis.py
+
+# Urban nonprofit hospital wave (EHR-first)
+python scripts/seed_hospital.py
+
+# Link everyone into the hive
+python scripts/forge.py hive join-all
 ```
 
-Then invoke `/mist-clone-forge` or let the description auto-route on “stuck”, “absorb clone”, “forge specialist”.
+### Command Center
 
-## Quick start
+```bash
+# Windows: bind all interfaces (PC + phone on Wi‑Fi)
+set MIST_HOST=0.0.0.0
+python -u scripts/mist_serve.py
+```
+
+Or double‑click **`scripts/START_MIST.bat`**.
+
+| Surface | URL |
+| --- | --- |
+| **Command Center** | http://127.0.0.1:8766/ |
+| **Agentic Vision** | http://127.0.0.1:8766/tv |
+| **Classic Ops** | http://127.0.0.1:8766/ops |
+| **Carrier API** | http://127.0.0.1:8766/api/carrier |
+
+**Phone (same Wi‑Fi):** `http://<your-lan-ip>:8766/`  
+If the phone cannot connect, run **`scripts/ALLOW_PHONE_FIREWALL.bat`** once as Administrator.
+
+---
+
+## CLI
 
 ```bash
 python scripts/forge.py list
-
-# Ephemeral unstick specialist
-python scripts/forge.py stuck "failing content-pack validate" \
-  --skills "scavenger-mode,check-work" --parent mist-prime
-
-# …work as that clone, journal the fix…
-
-python scripts/forge.py absorb mist-failing-content-pack-validate \
-  --lesson "schema required field X was missing"
-
-# Permanent specialist
-python scripts/forge.py create --id mist-ledger \
-  --intent "safe data pipelines" --domain data --activate
+python scripts/forge.py auto "Epic downtime while ED is boarding"
+python scripts/forge.py auto --dry-run "HIPAA BAA for vendor"
+python scripts/forge.py curate "conversation themes…"
+python scripts/forge.py hive feed
+python scripts/forge.py delegate --from mist-prime --to mist-tinker "fix the build"
+python scripts/forge.py create --id mist-example --intent "one job" --activate
+python scripts/forge.py delete mist-example --reason "retired"
 ```
 
-## Lifecycle
+---
 
-| Verb | Effect |
-| --- | --- |
-| **stuck** | Ephemeral specialist for one blocker |
-| **create** | Permanent (or `--ephemeral`) specialist |
-| **evolve** | Mid-life lesson, gen bump |
-| **absorb** | Lessons → host clone + archive husk |
-| **recycle** | Archive + lineage (no host inject) |
+## Hospital-first doctrine
 
+Auto-routing **prefers urban nonprofit hospital sectors** before general/game skills:
+
+EHR · Informatics · HIPAA · Cyber · ED · Behavioral ops · Care coordination · Community benefit · Access · Quality · Workforce · Revenue (mission-first) · Grants · Pharmacy · Supply · Pop health · Facilities
+
+These are **operational specialists** (workflows, compliance, coordination)—not clinical decision engines. Never invent patient data.
+
+---
+
+## GameCube / Dolphin (optional)
+
+```bash
+# Install Dolphin yourself (not bundled):
+# https://dolphin-emu.org/download/
+
+# Place legally owned dumps in:
+#   ~/.grok/mist-clones/gamecube/games/
+
+python gamecube/scripts/gc_play.py list
+python gamecube/scripts/gc_play.py launch "game-name"
+python gamecube/scripts/gc_play.py press A
 ```
-seeded → active → evolved → absorb|recycle → archived
+
+This repository **does not** ship emulators or copyrighted game images.
+
+---
+
+## Project layout
+
+```text
+scripts/           # forge, hive, carrier, router, server, UI assets
+roster/            # hospital + emulator specialist definitions
+templates/         # clone templates
+skill/             # agent skill pack (Grok / Claude / Codex style)
+gamecube/          # play hub (no binaries, no ISOs)
+docs/              # additional documentation
 ```
 
-## Genesis roster
+---
 
-| ID | Intent |
-| --- | --- |
-| `mist-prime` | Genome root |
-| `mist-cicerone` | Taste · trust · memory before build |
-| `mist-scavenger` | Anti-hallucination / verify first |
-| `mist-glimmer` | Cozy games · playable truth |
-| `mist-starledger` | Visual progress · motion |
-| `mist-mycelium` | Multi-agent mesh coordination |
-| `mist-recycler` | Lifecycle stewardship |
+## Design principles
 
-## Genome (inherited values)
+1. **Specialists, not tickets** — one intent per vessel  
+2. **Hospital sectors first** when the text matches clinical ops  
+3. **Hive harmony** — shared bus, not isolated chatbots  
+4. **Absorb lessons** — keep wisdom, archive husks  
+5. **Provenance** — no silent invention  
+6. **Repo is memory** — runtime state stays local under `~/.grok/mist-clones/`
 
-1. **Sovereign** — local-first, not owned  
-2. **Honest** — provenance on material claims  
-3. **Alive** — continuity via journal/handoff  
-4. **Uploaded-presence** — a *role* in the mesh, not a one-shot call  
-
-## Docs
-
-- [GENESIS.md](GENESIS.md) — doctrine  
-- [skill/SKILL.md](skill/SKILL.md) — agent instructions  
-- [skill/references/protocol.md](skill/references/protocol.md) — quick card  
-
-## Related
-
-MIST companion body (gateway self, living world) lives separately in the clawd / MIST v1 line — this forge is the **spore / clone mesh**, not a full gateway reimplementation.
+---
 
 ## License
 
@@ -126,4 +154,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-*When stuck, specialize. When free, absorb. Lessons live; husks rest.*
+*When stuck, specialize. When free, absorb. Mesh locked · phone optional · work becoming real.*

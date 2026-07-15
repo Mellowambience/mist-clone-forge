@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MIST Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#03060c;--panel:rgba(8,16,32,.75);--ink:#eef6ff;--mute:#7d94b3;
+  --cyan:#38bdf8;--violet:#a78bfa;--green:#34d399;--pink:#f472b6;--amber:#fbbf24;
+  --line:rgba(148,180,220,.14);--hot:#f472b6;--warm:#38bdf8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+body{overflow:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(1000px 600px at 10% 0%,rgba(56,189,248,.14),transparent 55%),
+  radial-gradient(800px 500px at 90% 10%,rgba(167,139,250,.12),transparent 50%),
+  radial-gradient(700px 400px at 50% 100%,rgba(52,211,153,.06),transparent 45%),
+  linear-gradient(180deg,#050a14,#03060c)}
+.bg::after{content:"";position:absolute;inset:0;background-image:
+  linear-gradient(rgba(56,189,248,.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(56,189,248,.03) 1px,transparent 1px);
+  background-size:40px 40px;mask-image:radial-gradient(ellipse at center,black 15%,transparent 70%);pointer-events:none}
+.app{position:relative;z-index:1;height:100vh;display:grid;grid-template-rows:58px auto 1fr 36px;gap:0}
+
+/* top */
+.top{display:flex;align-items:center;justify-content:space-between;padding:0 1rem;border-bottom:1px solid var(--line);background:rgba(3,8,16,.7);backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:.7rem}
+.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0ea5e9,#8b5cf6 55%,#34d399);box-shadow:0 0 24px rgba(56,189,248,.4)}
+.brand h1{font-family:Syne,sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:-.02em}
+.brand small{display:block;font-family:"IBM Plex Mono",monospace;font-size:.6rem;color:var(--mute);letter-spacing:.1em;text-transform:uppercase}
+.top-right{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:.65rem;color:var(--mute);border:1px solid var(--line);background:rgba(8,16,32,.65);border-radius:999px;padding:.28rem .65rem}
+.chip b{color:var(--ink);font-weight:500}
+.chip.ok{border-color:rgba(52,211,153,.45);color:var(--green)}.chip.ok b{color:var(--green)}
+.chip.bad{border-color:rgba(244,114,182,.5);color:var(--pink)}.chip.bad b{color:var(--pink)}
+.chip a{color:var(--cyan);text-decoration:none}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:.55rem;padding:.7rem 1rem;border-bottom:1px solid var(--line);background:rgba(4,10,20,.4)}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.65rem .75rem;backdrop-filter:blur(10px)}
+.kpi .l{font-size:.58rem;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;font-family:"IBM Plex Mono",monospace}
+.kpi .v{font-family:Syne,sans-serif;font-size:1.25rem;font-weight:600;margin-top:.15rem}
+.kpi .s{font-size:.65rem;color:var(--mute);margin-top:.1rem;font-family:"IBM Plex Mono",monospace}
+
+/* main grid */
+.main{display:grid;grid-template-columns:1.15fr 1fr 0.95fr;min-height:0;gap:0}
+@media(max-width:1100px){.main{grid-template-columns:1fr;overflow:auto}}
+.col{border-right:1px solid var(--line);min-height:0;display:flex;flex-direction:column;background:rgba(4,10,20,.25)}
+.col:last-child{border-right:none}
+.col-h{font-family:"IBM Plex Mono",monospace;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding:.75rem .9rem .4rem;display:flex;justify-content:space-between;align-items:center}
+.col-h button,.btn{font-family:"IBM Plex Mono",monospace;font-size:.62rem;border:1px solid var(--line);background:rgba(8,16,32,.7);color:var(--mute);border-radius:7px;padding:.3rem .55rem;cursor:pointer}
+.btn:hover,.col-h button:hover{color:var(--ink);border-color:rgba(56,189,248,.4)}
+.btn.p{background:linear-gradient(135deg,#0284c7,#6d28d9);border:0;color:#fff}
+.scroll{flex:1;overflow:auto;padding:0 .7rem 1rem;min-height:0}
+
+/* command */
+.cmd{padding:.5rem .7rem .85rem}
+.cmd textarea{width:100%;min-height:72px;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;color:var(--ink);font:inherit;font-size:.8rem;padding:.6rem;resize:vertical}
+.cmd-row{display:flex;gap:.4rem;margin-top:.45rem;flex-wrap:wrap}
+.quick{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}
+.quick button{font-size:.6rem}
+
+/* agents */
+.agent{display:grid;grid-template-columns:auto 1fr auto;gap:.5rem;align-items:center;padding:.5rem .55rem;border:1px solid transparent;border-radius:10px;cursor:pointer;margin-bottom:2px}
+.agent:hover{background:rgba(56,189,248,.06)}
+.agent.sel{border-color:rgba(56,189,248,.35);background:rgba(56,189,248,.08)}
+.dot{width:8px;height:8px;border-radius:50%;background:#475569}
+.dot.hot{background:var(--hot);box-shadow:0 0 8px var(--hot)}
+.dot.warm{background:var(--warm);box-shadow:0 0 8px var(--warm)}
+.aid{font-family:"IBM Plex Mono",monospace;font-size:.75rem;color:var(--cyan)}
+.aint{font-size:.62rem;color:var(--mute);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.adom{font-size:.55rem;color:var(--mute);font-family:"IBM Plex Mono",monospace}
+
+/* stream */
+.thought{padding:.5rem .55rem;border-radius:10px;border:1px solid transparent;background:rgba(8,16,32,.4);margin-bottom:.35rem;font-family:"IBM Plex Mono",monospace;font-size:.72rem;line-height:1.45}
+.thought:hover{border-color:var(--line)}
+.thought .who{color:var(--cyan);font-size:.62rem}
+.thought.sys .who{color:var(--violet)}
+.thought.task .who{color:var(--green)}
+.thought .body{color:var(--ink);margin-top:.15rem}
+
+/* tasks */
+.task{padding:.45rem .5rem;border-bottom:1px solid var(--line);font-size:.7rem}
+.task b{color:var(--green);font-family:"IBM Plex Mono",monospace;font-weight:500}
+
+/* phone card */
+.phone-box{margin:.5rem .7rem;padding:.7rem;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.phone-box h3{font-size:.75rem;margin-bottom:.35rem}
+.phone-box a{color:var(--cyan);font-family:"IBM Plex Mono",monospace;font-size:.72rem;word-break:break-all}
+.phone-box p{font-size:.65rem;color:var(--mute);margin-top:.35rem;line-height:1.4}
+
+.foot{display:flex;justify-content:space-between;align-items:center;padding:0 1rem;border-top:1px solid var(--line);background:rgba(3,8,16,.75);font-family:"IBM Plex Mono",monospace;font-size:.62rem;color:var(--mute)}
+.foot a{color:var(--cyan);text-decoration:none;margin-left:.6rem}
+.toast{position:fixed;bottom:1rem;right:1rem;z-index:50;background:rgba(8,16,32,.95);border:1px solid rgba(56,189,248,.4);padding:.6rem .85rem;border-radius:10px;font-size:.72rem;opacity:0;transition:opacity .2s;max-width:340px}
+.toast.show{opacity:1}
+.filter{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;font-size:.72rem;padding:.4rem .55rem;margin:0 .7rem .5rem;width:calc(100% - 1.4rem)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark"></div>
+      <div>
+        <h1>MIST Command Center</h1>
+        <small>Agentic mesh · hospital-first · dual carrier</small>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="chip ok" id="c-mesh"><b>MESH…</b></div>
+      <div class="chip bad" id="c-phone"><b>PHONE…</b></div>
+      <div class="chip"><b id="c-up">—</b> up</div>
+      <div class="chip"><a href="/tv">Vision</a> · <a href="/ops">Ops</a> · <a href="/tv">Agent feed</a></div>
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi"><div class="l">Agents</div><div class="v" id="k-agents">—</div><div class="s" id="k-hot">— hot</div></div>
+    <div class="kpi"><div class="l">Hive minds</div><div class="v" id="k-hive">—</div><div class="s">linked</div></div>
+    <div class="kpi"><div class="l">Open tasks</div><div class="v" id="k-tasks">—</div><div class="s">delegation queue</div></div>
+    <div class="kpi"><div class="l">Hive msgs</div><div class="v" id="k-msg">—</div><div class="s">recent bus</div></div>
+    <div class="kpi"><div class="l">Mesh signal</div><div class="v" id="k-bars" style="font-size:1rem;font-family:IBM Plex Mono,monospace">—</div><div class="s">carrier strength</div></div>
+    <div class="kpi"><div class="l">Phone LAN</div><div class="v" id="k-phone-ip" style="font-size:.85rem;font-family:IBM Plex Mono,monospace">—</div><div class="s" id="k-phone-st">waiting</div></div>
+  </section>
+
+  <div class="main">
+    <!-- left: command + agents -->
+    <div class="col">
+      <div class="col-h">Command <span>
+        <button class="btn p" id="btn-auto">Auto-route</button>
+        <button class="btn" id="btn-curate">Curate</button>
+      </span></div>
+      <div class="cmd">
+        <textarea id="cmd" placeholder="What does the hospital / mission need? MIST picks the specialist…"></textarea>
+        <div class="cmd-row">
+          <button class="btn p" id="btn-go">Dispatch</button>
+          <button class="btn" id="btn-preview">Preview route</button>
+          <button class="btn" id="btn-hive">Broadcast hive</button>
+        </div>
+        <div class="quick">
+          <button class="btn" data-q="Epic downtime while ED is boarding">ED + EHR downtime</button>
+          <button class="btn" data-q="HIPAA BAA for analytics vendor">HIPAA BAA</button>
+          <button class="btn" data-q="charity care financial assistance denial">Charity care</button>
+          <button class="btn" data-q="play gamecube on dolphin">GameCube</button>
+          <button class="btn" data-q="nursing staffing float pool burnout">Workforce</button>
+        </div>
+      </div>
+      <div class="col-h">Specialists <button id="btn-relink">Re-link hive</button></div>
+      <input class="filter" id="filter" placeholder="Filter agents…"/>
+      <div class="scroll" id="agents"></div>
+    </div>
+
+    <!-- center: live cognition -->
+    <div class="col">
+      <div class="col-h">Live cognition <button id="btn-clear">Clear</button></div>
+      <div class="scroll" id="stream"><div class="thought sys"><div class="who">system</div><div class="body">Connecting to mesh…</div></div></div>
+    </div>
+
+    <!-- right: tasks + phone + focus -->
+    <div class="col">
+      <div class="col-h">Active work</div>
+      <div class="scroll" style="flex:0 0 auto;max-height:28vh" id="tasks"></div>
+      <div class="col-h">Phone carrier</div>
+      <div class="phone-box">
+        <h3 id="phone-title">Phone</h3>
+        <a id="phone-url" href="#" target="_blank">—</a>
+        <p id="phone-help">Same Wi‑Fi as PC. Open link on phone → PHONE LOCK. If refused, run ALLOW_PHONE_FIREWALL.bat as Admin.</p>
+      </div>
+      <div class="col-h">Focus</div>
+      <div class="phone-box">
+        <h3 id="focus-id">Hive multiplex</h3>
+        <p id="focus-intent">Select a specialist or dispatch a command.</p>
+        <div class="cmd-row" style="margin-top:.5rem">
+          <button class="btn" id="btn-vision">Open Vision</button>
+          <button class="btn" id="btn-ops">Classic Ops</button>
+        </div>
+      </div>
+      <div class="col-h">Last dispatch</div>
+      <pre class="scroll" id="dispatch-out" style="font-family:IBM Plex Mono,monospace;font-size:.65rem;color:var(--mute);white-space:pre-wrap;padding:.5rem .7rem"></pre>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span id="foot-l">carrier · —</span>
+    <span>
+      <span id="foot-r">—</span>
+      <a href="/tv">/tv</a>
+      <a href="/ops">/ops</a>
+      <a href="/api/carrier/debug">/api/carrier/debug</a>
+    </span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const S={board:null,seen:new Set(),sel:null};
+const $=id=>document.getElementById(id);
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800)}
+
+async function api(path,opts){
+  const r=await fetch(path,opts);
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok&&j.ok===false) throw new Error(j.error||j.output||r.statusText);
+  return j;
+}
+
+function setCarrierUI(car){
+  const mesh=car.mesh||{};
+  const phone=car.phone||{};
+  const mlock=mesh.locked!==false&&car.locked!==false;
+  const plock=!!phone.locked;
+  const cm=$('c-mesh'), cp=$('c-phone');
+  cm.className='chip '+(mlock?'ok':'bad');
+  cm.innerHTML='<b>'+(mlock?'MESH LOCK':'MESH DOWN')+'</b> '+(mesh.signal_label||car.signal_label||'');
+  cp.className='chip '+(plock?'ok':'bad');
+  const pname=phone.name||'PHONE';
+  cp.innerHTML='<b>'+(plock?pname+' LOCK':pname+' …')+'</b> '+(phone.signal_label||'[.....]');
+  $('c-up').textContent=car.uptime_human||'—';
+  $('k-bars').textContent=mesh.signal_label||car.signal_label||'—';
+  const urls=phone.urls||car.lan_urls||[];
+  // prefer non-hyperv
+  const best=urls.find(u=>!u.ip.startsWith('172.26.'))||urls[0];
+  if(best){
+    $('k-phone-ip').textContent=best.ip;
+    $('phone-url').textContent=best.vision;
+    $('phone-url').href=best.vision;
+  }
+  $('k-phone-st').textContent=plock?('locked · '+(phone.ip||'mobile')):'waiting for phone on Wi‑Fi';
+  $('phone-title').textContent=(phone.name||'Phone')+(plock?' · LOCKED':' · waiting');
+  $('foot-l').textContent=(mlock?'mesh locked':'mesh down')+' · '+(plock?'phone locked':'phone waiting')+' · '+(car.frequency||'');
+}
+
+function renderAgents(){
+  const q=($('filter').value||'').toLowerCase();
+  const list=(S.board.agents||[]).filter(a=>{
+    if(!q) return true;
+    return (a.id+' '+a.domain+' '+a.intent).toLowerCase().includes(q);
+  });
+  // hospital first
+  list.sort((a,b)=>{
+    const ah=String(a.domain||'').startsWith('hospital')?0:1;
+    const bh=String(b.domain||'').startsWith('hospital')?0:1;
+    if(ah!==bh) return ah-bh;
+    return a.id.localeCompare(b.id);
+  });
+  $('agents').innerHTML=list.map(a=>`
+    <div class="agent ${S.sel===a.id?'sel':''}" data-id="${esc(a.id)}">
+      <span class="dot ${esc(a.pulse||'idle')}"></span>
+      <div>
+        <div class="aid">${esc(a.id)}</div>
+        <div class="aint">${esc(a.intent)}</div>
+      </div>
+      <div class="adom">${esc((a.domain||'').replace('hospital-','h/'))}</div>
+    </div>`).join('');
+  document.querySelectorAll('.agent').forEach(el=>el.onclick=()=>{
+    S.sel=el.dataset.id;
+    const a=(S.board.agents||[]).find(x=>x.id===S.sel);
+    if(a){ $('focus-id').textContent=a.id; $('focus-intent').textContent=a.intent||'—'; }
+    renderAgents();
+  });
+}
+
+function addThought(th){
+  const key=th.id||(th.ts+th.text);
+  if(S.seen.has(key)) return;
+  S.seen.add(key);
+  if(S.seen.size>250) S.seen=new Set([...S.seen].slice(-120));
+  const kind=(th.kind||'think').toLowerCase();
+  let cls='';
+  if(kind.includes('harmon')||kind==='system') cls='sys';
+  if(kind.includes('task')||kind==='delegate') cls='task';
+  const el=document.createElement('div');
+  el.className='thought '+cls;
+  el.innerHTML=`<div class="who">${esc(th.channel||'?')} · ${esc(kind)}</div><div class="body">${esc(th.text||'')}</div>`;
+  const stream=$('stream');
+  if(stream.querySelector('.thought.sys')&&stream.children.length===1&&stream.textContent.includes('Connecting')) stream.innerHTML='';
+  stream.prepend(el);
+  while(stream.children.length>60) stream.removeChild(stream.lastChild);
+}
+
+function renderTasks(){
+  const tasks=(S.board.hive&&(S.board.hive.open_tasks||S.board.hive.tasks))||[];
+  const open=tasks.filter(t=>t.status==='open'||t.status==='accepted');
+  $('tasks').innerHTML=open.length?open.slice(0,20).map(t=>
+    `<div class="task"><b>${esc(t.to_id)}</b> ← ${esc(t.from_id)}<br/>${esc(t.title)}</div>`
+  ).join(''):'<div class="task" style="color:var(--mute)">No open tasks</div>';
+}
+
+async function refresh(){
+  try{
+    const b=await api('/api/board?t='+Date.now());
+    S.board=b;
+    $('k-agents').textContent=b.agent_count??'—';
+    $('k-hot').textContent=(b.hot||0)+' hot · '+(b.warm||0)+' warm';
+    $('k-hive').textContent=(b.hive&&b.hive.member_count)||'—';
+    const open=((b.hive&&b.hive.open_tasks)||[]).length || ((b.hive&&b.hive.tasks)||[]).filter(t=>t.status==='open').length;
+    $('k-tasks').textContent=open;
+    $('k-msg').textContent=(b.hive&&b.hive.messages&&b.hive.messages.length)||0;
+    setCarrierUI(b.carrier||{});
+    renderAgents();
+    renderTasks();
+    // cognition from tv api
+    const tv=await api('/api/tv?channel=ALL&t='+Date.now());
+    (tv.thoughts||[]).slice(-25).forEach(addThought);
+    $('foot-r').textContent=(b.ts||'').replace('T',' ').slice(0,19);
+    const isMobile=/mobile|android|iphone|ipad/i.test(navigator.userAgent||'');
+    fetch('/api/carrier/ping?client='+(isMobile?'phone':'command')).catch(()=>{});
+  }catch(e){
+    toast('NO CARRIER — run START_MIST.bat');
+    $('c-mesh').className='chip bad';
+    $('c-mesh').innerHTML='<b>MESH DOWN</b>';
+    $('foot-l').textContent='no carrier · 127.0.0.1:8766 refused';
+  }
+}
+
+async function dispatch(dry){
+  const task=$('cmd').value.trim();
+  if(!task) return toast('Enter a command');
+  toast(dry?'Previewing…':'Dispatching…');
+  try{
+    const j=await api('/api/auto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,dry_run:!!dry})});
+    $('dispatch-out').textContent=JSON.stringify(j,null,2);
+    if(j.ok&&j.chosen){
+      addThought({id:'d'+Date.now(),channel:'auto',kind:'harmony',text:`${dry?'Preview':'Dispatched'} → ${j.chosen.id} (${j.chosen.domain||''}) score=${j.chosen.score}`});
+      toast((dry?'Would route to ':'→ ')+j.chosen.id);
+    } else if(j.routes){
+      toast('Top: '+(j.routes[0]&&j.routes[0].id));
+    }
+    if(!dry) refresh();
+  }catch(e){toast(e.message);$('dispatch-out').textContent=String(e)}
+}
+
+$('btn-go').onclick=()=>dispatch(false);
+$('btn-preview').onclick=()=>dispatch(true);
+$('btn-auto').onclick=()=>dispatch(false);
+$('btn-clear').onclick=()=>{$('stream').innerHTML='';S.seen=new Set()};
+$('btn-relink').onclick=async()=>{await api('/api/hive/join-all',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});toast('Hive re-linked');refresh()};
+$('btn-hive').onclick=async()=>{
+  const body=$('cmd').value.trim()||'Command center broadcast';
+  await api('/api/hive/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:'mist-prime',body,kind:'harmony'})});
+  toast('Broadcast');refresh();
+};
+$('btn-curate').onclick=async()=>{
+  const text=$('cmd').value.trim()||'hospital mesh command center';
+  const j=await api('/api/curate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,save:true})});
+  $('dispatch-out').textContent=JSON.stringify(j.options||j,null,2);
+  toast((j.options||[]).length+' options curated');
+};
+$('btn-vision').onclick=()=>location.href='/tv';
+$('btn-ops').onclick=()=>location.href='/ops';
+$('filter').oninput=renderAgents;
+document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{$('cmd').value=b.dataset.q});
+
+refresh();
+setInterval(refresh,2000);
+</script>
+</body>
+</html>

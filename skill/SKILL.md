@@ -52,12 +52,42 @@ MIST body: `~/mist-v1-build/clawd/`
 - Stale permanent role → recycle  
 - Genesis / forge / clone language  
 
+## Hive mind + auto-route (not manual tickets)
+
+All specialists share `~/.grok/mist-clones/hive/hive.db`:
+
+- **presence** · **messages** · **tasks/delegation** · **harmony links**
+- On create/stuck: auto-join hive  
+- On absorb/delete: leave + harmony notice  
+- **`python forge.py auto "task…"`** — MIST picks specialist (**urban nonprofit hospital sectors first**) and dispatches  
+- Manual delegate is override only  
+
+Doctrine: **hospital mesh before games/video/other** (EHR, HIPAA, ED, care, community, revenue, workforce…).
+
+Live UI: http://127.0.0.1:8766/ — tabs **Your options** (curated from conversation) · **Auto (MIST)** · Mesh · Hive · Tasks · Manage.
+
+### Curate from conversation
+```powershell
+python $forge curate "paste conversation themes…" 
+python $forge curate --latest
+```
+Board: paste context → **Update my options** → user clicks a card → auto-dispatch or open the right tool.  
+Saved under `~/.grok/mist-clones/curation/latest.json`.
+
 ## CLI
 
 ```powershell
 $forge = "$env:USERPROFILE\.grok\mist-clones\scripts\forge.py"
 
 python $forge list
+python $forge create --id mist-x --intent "…" --activate
+python $forge delete mist-x --reason "retired"
+python $forge delegate --from mist-prime --to mist-tinker "fix the build"
+python $forge hive join-all
+python $forge hive feed
+python $forge hive post --from mist-prime --body "hello mesh" --kind harmony
+python $forge task list
+python $forge task done --id task-… --result "fixed"
 
 # Stuck → ephemeral specialist
 python $forge stuck "Three.js CapsuleGeometry missing in r128" `
@@ -116,29 +146,47 @@ Never absorb `mist-prime` without `--force`.
 5. Evolve mid-flight if durable lesson  
 6. **Absorb** if ephemeral / stuck-helper; else keep active  
 
-## Genesis roster
+## Memory rule (repo is truth)
+
+1. Write roster/docs to **GitHub** first  
+2. After successful push, **delete** local package checkout (`~/mist-clone-forge`)  
+3. Thin `~/.grok/mist-clones` is optional scratch — rehydrate via `seed_all.py`  
+4. Prune `archive/` after absorb  
+
+https://github.com/Mellowambience/mist-clone-forge
+
+## Roster (17)
+
+**Genesis:** prime · cicerone · scavenger · glimmer · starledger · mycelium · recycler  
+
+**Wave 2:** ledger · shipwright · scribe · cartographer · sentinel · gardener · oracle · tinker · lantern · bridge  
 
 | ID | Intent |
 | --- | --- |
-| `mist-prime` | Genome root (absorb target of last resort) |
-| `mist-cicerone` | Taste · trust · Nexus |
-| `mist-scavenger` | Anti-hallucination |
-| `mist-glimmer` | Cozy games / Lumen |
-| `mist-starledger` | HyperFrames / visual progress |
-| `mist-mycelium` | Mesh coordination |
-| `mist-recycler` | Lifecycle steward |
+| `mist-ledger` | Safe data pipelines |
+| `mist-shipwright` | Ship / git / Pages / itch |
+| `mist-scribe` | Narrative & store copy |
+| `mist-cartographer` | Level flow / spawns |
+| `mist-sentinel` | Safety · Level-4 gates |
+| `mist-gardener` | Skill shelf / grimoire |
+| `mist-oracle` | Research with sources |
+| `mist-tinker` | Unstick builds |
+| `mist-lantern` | Gentle onboarding |
+| `mist-bridge` | Cross-agent handoffs |
 
 ## Anti-spiral
 
 - Stuck-forge only after real friction  
 - ≤6 skills per clone  
 - Always absorb or recycle ephemerals before session end when possible  
-- No delete-by-hand of clone dirs  
+- No delete-by-hand of active clone dirs (use absorb/recycle)  
+- After push, **do** delete disposable local packages  
 - No invented gateway features  
 
 ## Oath
 
 When stuck, I specialize.  
 When free, I absorb.  
+Repo remembers; disk can forget.  
 Lessons live; husks rest.  
-The mesh stays lean — and wiser.
+The mesh stays lean — and warmer.
