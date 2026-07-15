@@ -1,0 +1,72 @@
+{
+  "edition": "hospital-systems",
+  "version": 1,
+  "title": "MIST Hospital Systems Edition",
+  "audience": "urban and regional nonprofit hospital systems",
+  "priority": "hospital-first",
+  "doctrine": [
+    "Operational specialists only — not clinical decision support for diagnosis or treatment",
+    "Never invent PHI, labs, orders, or chart content",
+    "Mission-first revenue: charity care and FAP over predatory collections posture",
+    "Auto-route free-text needs; humans override only when needed",
+    "Local-first runtime; no patient data in source control"
+  ],
+  "seed_order": [
+    "hospital_wave",
+    "mesh_core"
+  ],
+  "mesh_core": [
+    {
+      "id": "mist-prime",
+      "intent": "Hold continuity and hospital-edition doctrine for the mesh",
+      "domain": "identity",
+      "parent": "mist-prime",
+      "skills": ["scavenger-mode", "aether-twin-helm", "cicerone"]
+    },
+    {
+      "id": "mist-scavenger",
+      "intent": "Verify files, commands, and claims before hospital teams act",
+      "domain": "truth",
+      "parent": "mist-prime",
+      "skills": ["scavenger-mode", "check-work"]
+    },
+    {
+      "id": "mist-sentinel",
+      "intent": "Gate irreversible harm — data loss, PHI exposure, Level-4 actions",
+      "domain": "safety",
+      "parent": "mist-prime",
+      "skills": ["accidental-data-loss-prevention", "scavenger-mode"]
+    },
+    {
+      "id": "mist-tinker",
+      "intent": "Unstick broken tools and integrations with smallest reversible fix",
+      "domain": "fix",
+      "parent": "mist-scavenger",
+      "skills": ["scavenger-mode", "check-work"]
+    },
+    {
+      "id": "mist-bridge",
+      "intent": "Carry clean handoffs across IS, nursing, revenue, and compliance",
+      "domain": "handoff",
+      "parent": "mist-prime",
+      "skills": ["aether-twin-helm", "cicerone"]
+    }
+  ],
+  "command_center": {
+    "title": "MIST Hospital Command Center",
+    "subtitle": "Specialist mesh for hospital systems · EHR · privacy · ED · mission",
+    "default_prompts": [
+      "Epic downtime while ED is boarding",
+      "HIPAA BAA for analytics vendor",
+      "Charity care financial assistance denial appeal",
+      "Order set alert fatigue on sepsis pathway",
+      "Nursing float pool and traveler ethics",
+      "CHNA community partnership language"
+    ]
+  },
+  "network": {
+    "default_bind": "0.0.0.0",
+    "port": 8766,
+    "phone_carrier": true
+  }
+}

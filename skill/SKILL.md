@@ -1,11 +1,11 @@
 ---
 name: mist-clone-forge
 description: >
-  Build, spawn, evolve, absorb, and recycle specialized clones of Agent MIST.
-  When stuck, forge an ephemeral specialist; when unstuck, absorb it into parent
-  so lessons stay and the husk archives. Use for genesis clones, specialized
-  intent, stuck→forge→absorb, lifecycle, lineage lessons, /mist-clone-forge,
-  mist clone, forge clone, absorb clone, recycle clone.
+  MIST Hospital Systems Edition — specialist agent mesh for hospital operations
+  (EHR, HIPAA, ED, care coordination, revenue/FAP, community benefit). Auto-route
+  needs hospital-first; hive handoffs; command center. Use for hospital systems,
+  clinical IS, compliance ops, downtime, BAAs, boarding, charity care, /mist-clone-forge,
+  forge clone, absorb, auto-route, hospital mesh. Not clinical decision support.
 ---
 
 # MIST Clone Forge
