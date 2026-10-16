@@ -3,6 +3,8 @@
 **Specialist agent mesh for hospital operations**  
 Urban & regional nonprofit health systems · EHR · privacy · ED · care · mission
 
+**At a glance:** auto-routes hospital operations work (EHR, HIPAA, ED, revenue cycle, staffing) to specialist agents, with provenance checks and a HIPAA watcher on PHI-like tasks. Operational intelligence only: it never invents patient data.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![Edition](https://img.shields.io/badge/edition-hospital%20systems-0ea5e9.svg)](docs/HOSPITAL_SYSTEMS.md)
